@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1><span class="blue"></span>TML_Customizations <span class="blue"></span> <span class="yellow">Plugin</pan>
+    </h1>
+    <h2>last updated by Brandon Stacy - 10/14/2022</a></h2>
+
+
+    <br>
+    <div id="TML_Customizations">
+        <h3><a href="#TML_Customizations">TML_Customizations</a></h3>
+        The TML_Customizations method creates two event handlers. One for when a loan is opened and one for one a loan closes. The loan open handler is called Application_LoanOpened and the loan closing event handler is named Application_Loan Closing.
+    </div><br>
+
+    <div id="Application_LoanOpened">
+        <h3><a href="#Application_LoanOpened">Application_LoanOpened</a></h3>
+        Application_LoanOpened method adds additional event handlers, One for Log Entry Change, and one for Field Changes. Those event handlers are named Current_LogEntryChange, and CurrentLoan_FieldChange. In addition, the Application_LoanOpened method also calls a method named CountConditions.
+    </div><br>
+
+    <div id="Current_LogEntryChange">
+        <h3><a href="#Current_LogEntryChange">Current_LogEntryChange</a></h3>
+        The Current_LogEntryChange method looks to see if an UnderwritingCondition log entry has changed, and if so, it calls the CountConditions method.
+    </div><br>
+
+    <div id="CurrentLoan_FieldChange">
+        <h3><a href="#CurrentLoan_FieldChange">CurrentLoan_FieldChange</a></h3>
+        The CurrentLoan_FieldChange method uses the field change event handler created in the Application_LoanOpened method to identify which field has changed and then depending on the new value of that field, particular actions occur. These values for these fields are typically set by various form or business rule actions within the Encompass client itself. These items are documented in the "Set From" column in the table below.
+        <br>
+        <br>
+        <table class="container">
+            <thead>
+                <tr>
+                    <th align="left">Field Id</th>
+                    <th align="left">New Value</th>
+                    <th align="left">Action(s)</th>
+                    <th align="left">Set From</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Calculate Liabilities</td>
+                    <td>The ClearGhostVOLs method is called, followed by the CalcLiabilities method.</td>
+                    <td>
+                        <b>TML_Calc_Liabilities_PluginTrigger</b> - As a loan is being saved leverages the CX.KM.BEFORESAVE event from the Kensie Mae Catch It Plugin to call this function by setting the value of CX.TMI.PLUGIN.ACTION to "Calculate Liabilites".
+                        <br>
+                        <br>
+                        <b>Borrower Summary - Sales - 2020 - (TML) Form</b> - Is called by setting the value of CX.TMI.PLUGIN.ACTION to "Calculate Liabilites" when the "Refresh Savings" button is clicked.
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Request STP </td>
+                    <td>The RequestSTP method is called</td>
+                    <td>
+                        <b>ENSFDataAutomation Plugin</b> - Sets a field in Encompass (CX.SALESFORCE.APPFORM) to a value of "X" which calls a field change event within the ENSFDataAutomation plugin. That field change event then sets the value of CX.TMI.PLUGIN.ACTION to "Request STP", then reloads the Borrower Summary form and calls a Loan.Commit which saves the loan.
+                        <br>
+                        <br>
+                        <b>
+                            <font color="red">Deprecated</font> - Borrower Summary - Sales - 2020 - (TML) Form
+                        </b> - Used to be called by the "Get STP Code" button on the Borrower Summary 2020 form by setting the value of CX.TMI.PLUGIN.ACTION to "Request STP". This code has been deprecated as a part of the
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Sub to UW</td>
+                    <td>The InitialSubmission method is called</td>
+                    <td>
+                        <b>Processing Summary - 2020 (TML) Form</b> - When the Submit to Underwriting button is clicked on the Processing Summary form is checked the form code validates that the value of the CX.LOAN.STATUS field is currently set to "STP" and if so, the CX.TMI.PLUGIN.ACTION field value is updated to "Sub to UW".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Resubmission</td>
+                    <td>The Resubmission method is called</td>
+                    <td>
+                        <b>Processing Summary - 2020 (TML) Form</b> - When the Resubmit button is clicked on the Processing Summary form the form code checks to see if the Processor indicated a resubmission type (partial or full), if not an error is thrown. The value of the CX.LOAN.STATUS field is then reviewed and depending on the value of that field different logic is applied:
+                        <br>
+                        <ul>
+                            <li>In the event that the CX.LOAN.STATUS field value is Approved, Suspended, Recommended for Decline, or Final Approved <b><u>AND</u></b> the CX.HIST.STATUS.FINAPPROVED field does not contain a date then the CX.TMI.PLUGIN.ACTION field is updated to "Resubmission". </li>
+                            <br>
+                        </ul>
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Refinal</td>
+                    <td>The Refinal method is called</td>
+                    <td>
+                        <b>Processing Summary - 2020 (TML) Form</b> - When the Resubmit button is clicked on the Processing Summary form the form code checks to see if the Processor indicated a resubmission type (partial or full), if not an error is thrown. The value of the CX.LOAN.STATUS field is then reviewed and depending on the value of that field different logic is applied:
+                        <br>
+                        <ul>
+                            <li>
+                                In the event that the CX.LOAN.STATUS field value is <b><u>NOT</u></b> Final Approved <b><u>AND</u></b> the CX.HIST.STATUS.FINAPPROVED field <b><u>does</u></b> contain a date then the CX.TMI.PLUGIN.ACTION field is updated to "Refinal". </li>
+                            <br>
+                            <li>
+                                In the event that the CX.UW.STATUS field value is Pending Re-Final Review then the CX.TMI.PLUGIN.ACTION field is updated to "Refinal". </li>
+                            <br>
+                            <li>
+                                In the event that the CX.UW.STATUS field value is Final Approved then the CX.TMI.PLUGIN.ACTION field is updated to "Refinal". </li>
+                            <br>
+                        </ul>
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>UW Cond Approval</td>
+                    <td>The UWCondApproval method is called</td>
+                    <td>
+                        <b>Underwriting Decision (TML) Form</b> - When the Conditionally Approved checkbox is checked, the form first checks to ensure that the UW has completed the expiration dates section. If they have, then the CX.TMI.PLUGIN.ACTION field is updated to "UW Cond Approval".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>UW Final Approval</td>
+                    <td>The UWFinal Approval method is called</td>
+                    <td>
+                        <b>Underwriting Decision (TML) Form</b> - When the Final Approval checkbox is checked, the form first checks the CX.UW.STATUS field. If the value of that field is "Pending Condition Review" or "Pending Suspense Review" then the value of the CX.TMI.PLUGIN.ACTION field is updated to "UW Final Approval".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>UW Refinal</td>
+                    <td>The UWRefinal method is called</td>
+                    <td>
+                        <b>Underwriting Decision (TML) Form</b> - When the Final Approval checkbox is checked, the form first checks the CX.UW.STATUS field. If the value of that field is "Pending Re-Final Review" then the value of the CX.TMI.PLUGIN.ACTION field is updated to "UW Refinal".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>UW Suspense</td>
+                    <td>The UWSuspense method is called</td>
+                    <td>
+                        <b>Underwriting Decision (TML) Form</b> - When the Suspended checkbox is checked, the form first checks to ensure that the UW has completed the expiration dates section. If they have, then the CX.TMI.PLUGIN.ACTION field is updated to "UW Suspense".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>UW RFD</td>
+                    <td>The UWRFD method is called</td>
+                    <td>
+                        <b>Underwriting Decision (TML) Form</b> - When the Recommend for Decline checkbox is checkedthe CX.TMI.PLUGIN.ACTION field is updated to "UW RFD".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Signing Request</td>
+                    <td>The SigningReq method is called</td>
+                    <td>
+                        <b>Signing Request (TML) Form</b> - Once the user has completed the request details and has clicked the "Submit Request" button the CX.TMI.PLUGIN.ACTION field is set to "Signing Request".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Docs Request</td>
+                    <td>The DocsRequest method is called</td>
+                    <td>
+                        <b>Doc Prep (TML) Form</b> - When the user clicks the "Request Docs" button the CX.TMI.PLUGIN.ACTION field is set to "Docs Request".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Docs Out</td>
+                    <td>The DocsOut method is called</td>
+                    <td>
+                        <b>Docs Out/Back (TML Temp) Form</b> - When the user clicks the "Mark Docs Out" button the CX.TMI.PLUGIN.ACTION field is set to "Docs Out".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Fund Loan</td>
+                    <td>The Fund Loan method is called</td>
+                    <td>
+                        <b>Funding Summary (TML) Form</b> - When the user clicks the "Complete Funding" button the CX.TMI.PLUGIN.ACTION field is set to "Fund Loan".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Initial Disclosures</td>
+                    <td>The RequiredFields_IntlDisclosure method is called</td>
+                    <td>
+                        <b>Borrower Summary - Sales - 2020 - (TML) Form</b> - When the "Issue Disclosures" button is selected the CX.TMI.PLUGIN.ACTION field is set to "Initial Disclosures".
+                        <br>
+                        <br>
+                        <b>Disclosure Desk (TML) Form</b> - When the sendInitialDisclosure method (part of the Form code) is called the CX.TMI.PLUGIN.ACTION field is updated to "Initial Disclosures".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Locked LE</td>
+                    <td>The LockedLE method is called</td>
+                    <td>
+                        <b>
+                            <font color="red">Deprecated</font>
+                        </b> - This method is not currently called anywhere from within Encompass.
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Log UWC Clear</td>
+                    <td>The LogUWCClear method is called</td>
+                    <td>
+                        <b>UW Comparison (TML) Form</b> - When the LogEntry method (part of the Form code) is called, the CX.TMI.PLUGIN.ACTION field is updated to "Log UWC Clear".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Export Status Hist</td>
+                    <td>The ExportHist method is called, with parameters (CX.LOAN.STATUS, and CX.LOAN.STATUS.HIST)</td>
+                    <td>
+                        <b>TML_Set_Status_Log - Field Trigger Business Rule</b> - This field trigger fires any time a loan is saved and the CX.KM.BEFORESAVE field is updated. When a loan is saved the CX.TMI.PLUGIN.ACTION field is updated to "Export Status Hist" <b>after</b> the CX.TMI.PLUGIN.ACTION field is updated to "Export EstVal Hist".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Export EstVal Hist</td>
+                    <td>The ExportHist method is called with parameters (1821, and CX.LOAN.ESTVAL.HIST)</td>
+                    <td>
+                        <b>TML_Set_Status_Log - Field Trigger Business Rule</b> - This field trigger fires any time a loan is saved and the CX.KM.BEFORESAVE field is updated. When a loan is saved the CX.TMI.PLUGIN.ACTION field is first updated to "Export Status Hist" and then is updated again to "Export EstVal Hist".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>Export LP Hist</td>
+                    <td>The ExportHist method is called with parameters (LoanTeamMember.Name.Loan Processor, CX.LOAN.LP.HIST)</td>
+                    <td>
+                        <b>TML_Processing_User_Assignment - Field Trigger Business Rule</b> - When the field event for the LPID field is fired (anytime the value of the LPID changes) the business rule first updates the CX.KM.FMS field to run the "Assign Users - LP" Automator Scenario. Once that is done, the business rule updates the CX.TMI.PLUGIN.ACTION field to "Export LP Hist".
+                        <br>
+                        <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>MoveFileProcClosing</td>
+                    <td>The MoveFileProcClosing method is called</td>
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>ReqFieldsTest</td>
+                    <td>The ReqFieldsTest method is called</td>
+
+                </tr>
+                <tr>
+                    <td>CX.TMI.PLUGIN.ACTION</td>
+                    <td>OrderDMDocs</td>
+                    <td>The OrderDMDocs method is called</td>
+                </tr>
+                <tr>
+                    <td>CX.WF.HS.CHECKLOCKDAYS</td>
+                    <td>X</td>
+                    <td>The ValidateLockDaysRemaining method is called</td>
+                </tr>
+                <tr>
+                    <td>CX.WF.HS.DISCCHECK</td>
+                    <td>X</td>
+                    <td>The <a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a>, ValidateDisclosures_LockDate, ValidateDisclosures_Product, and ValidateDisclosures_Variance methods are called</td>
+                </tr>
+                <tr>
+                    <td>CX.WF.HS.CHECKMAVENT</td>
+                    <td>X</td>
+                    <td>The ValidateMaventRun method is called</td>
+                </tr>
+                <tr>
+                    <td>CX.WF.HS.CEHCKMVTRESULT</td>
+                    <td>X</td>
+                    <td>The ValidateMaventResult method is called</td>
+                </tr>
+                <tr>
+                    <td>CX.WF.HS.MVTRESULT</td>
+                    <td>FAIL</td>
+                    <td>The ValidateMaventHardStop method is called</td>
+
+                </tr>
+                <tr>
+                    <td>CX.WF.HS.MITEST</td>
+                    <td>X</td>
+                    <td>The <a href="#ValidateMI">ValidateMI</a> method is called</td>
+                </tr>
+            </tbody>
+        </table>
+    </div><br>
+
+
+    <div id="BalanceCalc">
+        <h3><a href="#BalanceCalc">BalanceCalc</a></h3>
+        <i>Not called directly from Encompass, only called via the plugin</i>
+        <br>
+        <br>
+        The BalanceCalc function returns a decimal value and takes input parmaters of type and index. This function is called from another method to return a balance amount for a given liability.
+    </div><br>
+
+    <div id="PymtCalc">
+        <h3><a href="#PymtCalc">PymtCalc</a></h3>
+        <i>Not called directly from Encompass, only called via the plugin</i>
+        <br>
+        <br>
+        The PymtCalc function returns a decimal and takes input parameters of type and index. This function is called from another method to return a payment amount for a given liability.
+    </div><br>
+
+    <div id="ClearGhostVOLs">
+        <h3><a href="#ClearGhostVOLs">ClearGhostVOLs</a></h3>
+        <i>When the CX.TMI.PLUGIN.ACTION field is set to "Calculate Liabilities" this method is called immediately prior to the <a href="#CalcLiabilities">CalcLiabilities</a> method being called</i>
+        <br>
+        <br>
+        The ClearGhostVOLs method looks at the current loan, identifies how many borrower pairs exist on the loan and then loops through each borrower pairs set of liabilities, and removes any liability that has empty values in ALL of the following fields: Creditor Name, Liability Verif is for, Liability Balance, and Liability Monthly Pymt.
+    </div><br>
+
+    <div id="CalcLiabilities">
+        <h3><a href="#CalcLiabilities">CalcLiabilities</a></h3>
+        <i>Is called in two locations within Encompass.</i>
+        <ol>
+            <li><b>TML_Calc_Liabilities_PluginTrigger</b> - As a loan is being saved leverages the CX.KM.BEFORESAVE event from the Kensie Mae Catch It Plugin to call this function by setting the value of CX.TMI.PLUGIN.ACTION to "Calculate Liabilites".</li>
+            <li><b>Borrower Summary - Sales - 2020 - (TML)</b> - Is called by setting the value of CX.TMI.PLUGIN.ACTION to "Calculate Liabilites" when the "Refresh Savings" button is clicked.</li>
+        </ol>
+        <br>
+        Loops through all of the liabilities on a loan and calculates the total liability balance, the total liabilities count, total of all liability monthly payment, total of all liablity payments being paid off, and total liability payoff amounts and then updates a number of custom fields in encompass with these values. The fields that are updated in encompass related to this method are prefixed with "CX.LIAB.". At the end of the method the the fields for monthly benefit and monthly payments are updated in Encompass so that monthly savings can be calculated.
+    </div><br>
+
+
+    <div id="Application_LoanClosing">
+        The Application_LoanClosing method removes the field handlers CurrentLoan_FieldChange, and Application_LoanOpened.
+    </div><br>
+
+    <div id="CountConditions">
+        The CountConditions method counts the total prior to approval (PTA), prior to doc (PTD), prior to funding (PTF), at closing (AC), and prior to purchase (PTP) conditions and also counts the cleared prior to approval, cleared prior to docs, cleared prior to funding, cleared at closing, and cleared prior to purchase conditions. Once that is done, the method calculates the open prior to approval, open prior to doc, open at closing, open prior to funding, and open prior to purchase conditions and then sets the value of CX.LOAN.OPENPTAS, CX.LOAN.OPENPTDS, CX.LOAN.OPENPTFS, CX.LOAN.OPENACS, CX.LOAN.OPENPTPS fields within Encompass.
+    </div><br>
+
+    <div id="ReqFieldsTest">
+        The method ReqFieldsTest method is a test method which calls a helper method from the EntrustLibrary named ValidateReqFields.
+    </div><br>
+
+    <div id="OrderDMDocs">
+        The OrderDMDocs method validates that there are no borrowers on the loan which are designated as a type other than Individual (fields 4008/4009). If any of them are, then an error is added indicating that this needs to be corrected before closing documents can be generated. At this point the method looks to see if any errors have been added to the errors collection. If they have, the Encompass Hard Stops window is presented to the user telling them what needs to be fixed before they can generate DM closing documents. If there are no errors, then the plugin calls the Encompass EPASS signature for the Doc Magic integration.
+    </div><br>
+
+    <div id="MoveFileProcClosing">
+        <h3><a href="#MoveFileProcClosing">MoveFileProcClosing</a></h3>
+        Calls several methods in the following order: <br><br>
+
+        <ul>
+            <li><a href="#ValidateMI">ValidateMI</a></li><br>
+            <li><a href="#ValidateMaventRun">ValidateMaventRun</a></li><br>
+            <li><a href="#ValidateMaventResult">ValidateMaventResult</a></li><br>
+            <li><a href="#ValidateMaventHardStop">ValidateMaventHardStop</a></li><br>
+        </ul>
+        If any of the three Mavent methods fail or return an indication that there should be a hard stop, an error message is added indicating which of the Mavent methods failed. <br><br>
+
+        <ul>
+            <li><a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a></li><br>
+            <li>Reviews the value of the CX.WF.HS.APRTEST field. If the value of that field is "FAIL", then an error flag is added indicating that the APR has increased by more than .125 since the last disclosure. </li><br>
+            <li><a href="#ValidateDisclosures_LockDate">ValidateDisclosures_LockDate</a> - If the custom Encompass field CX.WF.HS.LOCKDISCTEST is set to a value of "FAIL" by this method, then an error message is added indicating that no redisclosure has taken place since the loan was locked. </li><br>
+            <li>ValidateDisclosures_Product - If the custom Encompass field CX.WF.HS.AMORTDISCTEST is set to a value of "FAIL" then an error message is added indicating that the amortization type has changed since the last disclosure and that redisclosure is needed. </li><br>
+        </ul>
+
+        There is then code which checks to see if the loan currently has an UW Status of Final Approved (CX.UW.STATUS) and if it does not, raises an error message indicating that the loan can not be pushed from Processing to Closing without UW Final Approval.
+
+        Next the code looks to see if the loan has MI, if it does, ANDthe loan is conventional AND the LTV and CLTV are less than 80%, it adds an error message indicating that there is MI included on a conventional loan with < 80 LTV. Next the code looks to see whether or not this loan has previously gone to Docs Requested, Docs Out, or Docs Back status. Whichever status is the maximum status that has been reached is placed into a variable for use later in the method. At this point the method looks to see if any errors have been added to the errors collection. If they have, the Encompss Hard Stops window is presented to the user telling them what needs to be fixed before they can push the loan to closing. If the count of errors is 0, that means that all of the tests that we've added here have passed and the status is updated accordingly, and the responsible department field (CX.LOAN.DEPT is set to a value of "Closing" ) </div><br>
+
+            <div id="ExportHist">
+                <h3><a href="#ExportHist">ExportHist</a></h3>
+                When called allows an admin or developer to take the entire history from the audit trail for a given field and inserts that history along with the loan #, timestamp of the change, username, userid, and field values separated by commas into a single field. This allows for review of the history for an individual field to be easily reviewed in bulk via a .csv editor. The input field must be passed to the method along with the output field in order to call this method. In addition, the input field needs to be an audited field that is in the reporting database, and the output field needs to be a large enough text field to contain all of the changes made to the input field over the life of a given loan.
+            </div><br>
+
+            <div id="RequestSTP">
+                <h3><a href="#RequestSTP">RequestSTP</a></h3>
+                Contains several pieces of logic:
+
+                - First it calls the <a href="#ValidateMI">ValidateMI</a> method - This method updates the CX.WF.HS.MITESTRESULT field with either a "PASS" or "FAIL" value. If the value is set to "FAIL" then an additional check is performed to see if the loan is a conventional loan or an FHA loan, and then adds an error message specific to that loan type to indicate to the end user that the MI test failed and this must be addressed before moving forward.
+                - Then the method checks the value of the CX.REPRICED custom Encompass field. If the value of this field is NOT EQUAL to "X" then it adds an error message indicating that the loan needs to be repriced via Optimal Blue before STP can be requested.
+                - Then the method checks the value of the "CX.REIMPORTEDTITLEFEES" custom Encompass field. If the value of that field is NOT EQUAL to "X" then an error message is added indicating that title fees need to be reimproted before the STP can be requested.
+                - At this point the method looks to see if any errors have been added, if there are none then the CX.LOAN.STATUS field is updated to "STP Requested" and the "CX.LOAN.DEPT" field is set to "POD". If errors were identified, then a validation window is shown to the user outlining each of the errors that were identified via the method and the user is advised that those items must be addressed before they will be able to complete the STP Request.
+            </div><br>
+
+            <div id="InitialDisclosures">
+                <h3><a href="#InitialDisclosures">InitialDisclosures</a></h3>
+                The InitialDisclosures method contains several pieces of logic:
+                - First it calls the <a href="#ValidateMI">ValidateMI</a> method - This method updates the CX.WF.HS.MITESTRESULT field with either a "PASS" or "FAIL" value. If the value is set to "FAIL" then an additional check is performed to see if the loan is a conventional loan or an FHA loan, and then adds an error message specific to that loan type to indicate to the end user that the MI test failed and this must be addressed before moving forward.
+                - Then the method checks the value of the CX.REPRICED custom Encompass field. If the value of this field is NOT EQUAL to "X" then it adds an error message indicating that the loan needs to be repriced via Optimal Blue before STP can be requested.
+                - Then the method checks the value of the "CX.REIMPORTEDTITLEFEES" custom Encompass field. If the value of that field is NOT EQUAL to "X" then an error message is added indicating that title fees need to be reimproted before the STP can be requested.
+                - Then the method looks at each Borrower Pair on the loan and checks the Encompass custom fields "CX.DEMOG.INFO.COMP.BOR" and "CX.DEMOG.INFO.COMP.CBOR". If either of these fields for any borrower pair do NOT equal X, that means that there is missing demographic info on the 1003 for that borrower pair. If any of the borrower pairs are found to be missing demographic info, an error message is added indicating that one or more borrowers are missing demographic info which needs to be corrected prior to issuing initial disclosures.
+                - At this point the method looks to see if any errors have been added, if there are none then the the plugin calls the ENcompass EPASS signature for generating disclosures. If errors were identified, then a validation window is shown to the user outlining each of the errors that were identified via the method and the user is advised that those items must be addressed before they will be able to issue Initial Disclosures.
+            </div><br>
+
+            <div id="LockedLE">
+                <h3><a href="#LockedLE">LockedLE</a></h3>
+                The LockedLE method contains several pieces of logic:
+                - First it calls the <a href="#ValidateMI">ValidateMI</a> method - This method updates the CX.WF.HS.MITESTRESULT field with either a "PASS" or "FAIL" value. If the value is set to "FAIL" then an additional check is performed to see if the loan is a conventional loan or an FHA loan, and then adds an error message specific to that loan type to indicate to the end user that the MI test failed and this must be addressed before moving forward.
+                - Next it looks at the custom Encompass field "CX.LCKC.VARIANCE", if the value of that field is set to "Y" then that means that one or more of the fields which cause a variance from the initial rate lock have been changed since the loan was locked. If this is the case, an error message is added indicating that the variance needs to be cleared before the user will be able to send the Locked LE.
+                - At this point the method looks to see if any errors have been added, if there are none then the the plugin sets the values of the following fields
+                - LE1.X1 = Todays Date
+                - 3168 = "Y"
+                - 3165 = Todays Date
+                - LE1.X81 = "Y"
+                - CX.KM.EXECSIGNATURE = ""
+                - CX.KM.EXECSIGNATURE = "_EPASS_SIGNATURE;ENCOMPASSDOCS;EDISCLOSURES2" ----> This is the epass signature for the custom button that we use to generate disclosures.
+
+                If an error had been identified, a validation window is shown to the user outlining each of the errors that were identified via the method and the user is advised that those items need to be addressed before they will be able to send the Locked LE.
+            </div><br>
+
+            <div id="ValidateDisclosures_APR">
+                <h3><a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a></h3>
+                The ValidateDisclosures_APR method runs a test to ensure that the APR has not increased by .125 or more since the last disclosures were sent. It does this by looking at the last disclosed APR (field id 3121), the current APR (field id 799) and then subtracking the current APR from the disclosed APR. If the resulting spread is greater than or equal to .125 then the value of the custom Encompass field "CX.WF.HS.APRTEST" is set to "FAIL", otherwise if the spread is .124 or less, the value of "CX.WF.HS.APRTEST" is set to "PASS".
+            </div><br>
+
+            <div id="ValidateDisclosures_LockDate">
+                <h3><a href="#ValidateDisclosures_APR">ValidateDisclosures_LockDate</a></h3>
+                The <a href="#ValidateDisclosures_LockDate">ValidateDisclosures_LockDate</a> method uses a compareDate variable to run its tests. It does this by first looking to see if a CD has been sent and if a CD has NOT been sent, it sets the compareDate variable equal to the date of Encompass Field id LE1.X33 (Loan Estimate - Disclosure Last Sent Date). If a CD HAS been sent, the compare date is set to the value of Encompass Field ID CD1.X47 (Closing Disclosure - Disclosure Last Sent Date). The method then looks to see if the lock date (Encompass field id 761) is greater than the compareDate variable. If it is, then the method sets the value of the custom Encompass field "CX.WF.HS.LOCKDISCTEST" to "FAIL". If the lock date is found to be less than or equal to the compareDate, then the value of the custom Encompass field "CX.WF.HS.LOCKDISCTEST" is set to "PASS".
+            </div><br>
+
+            <div id="ValidateDisclosures_Product">
+                <h3><a href="#ValidateDisclosures_Product">ValidateDisclosures_Product</a></h3>
+                The ValidateDisclosures_Product method checks first to ensure that Initial Disclosures have in fact been sent on the file. If they have, it then looks as the type of amortization that was last disclosed (Encompass field id 4017) and then compares that to the amortization as currently configured on the loan file (Encompass field id LE1.X5). If there is a discrepancy, then the value of the custom Encompass field "CX.WF.HS.AMORTDISCTEST" is set to "FAIL", if the two match, then the value of the custom Encompass field "CX.WF.HS.AMORTDISCTEST" is set to "PASS".
+            </div><br>
+
+            <div id="ValidateDisclosures_Variance">
+                <h3><a href="#ValidateDisclosures_Variance">ValidateDisclosures_Variance</a></h3>
+                The ValidateDisclosures_Variance method checks to see if a CD has been sent. If so it looks to see if there are variances between the current fees and the fees disclosed on the last CD. If there has not been a CD sent, it checks to see if there are variances between the current fees and the fees disclosed on the last LE. If a variance is found, it then looks to see if there has been a cure applied that is large enough to cure the variance. If there is a cure already applied, and it covers the variance, the value of the custom Encompass field CX.WF.HS.DISCFVTEST is set to "PASS" otherwise if the cure does not cover the variance or if there is a variance and no cure applied, teh value of CX.WF.HS.DISCFVTEST is set to "FAIL" .
+            </div><br>
+
+            <div id="ValidateMaventRun">
+                <h3><a href="#ValidateMaventRun">ValidateMaventRun</a></h3>
+                The ValidateMaventRun method checks to see if a Mavent has been run within the last 7 minutes. If a Mavent has not been run or has not been run in the last 7 minutes, the value of custom Encompass field CX.WF.HS.MVTRUN is set to "FAIL", if a Mavent has been run within the past 7 minutes, the value of custom Encompass field CX.WF.HS.MVTRUN is set to "PASS".
+            </div><br>
+
+            <div id="ValidateMaventResult">
+                <h3><a href="#ValidateMaventResult">ValidateMaventResult</a></h3>
+                The ValidateMaventResult method checks to see if the last Mavent passed, had errors, or failed. It looks at teh value of the COMPLIANCEREVIEW.X1 field in Encompass, if the value of that field is "FAIL" or "ERROR" then the value of custom Encompass field "CX.WF.HS.MVTRESULT" is set to "FAIL", otherwise the the value of custom Encompass field "CX.WF.HS.MVTRESULT" is set to "PASS".
+            </div><br>
+
+            <div id="ValidateMaventHardStop">
+                <h3><a href="#ValidateMaventHardStop">ValidateMaventHardStop</a></h3>
+                The ValidateMaventHardStop method checks for 12 different scenarios and if any one of them is found to be true then a Failure Count variable with a default value of 0 (iFailCount) is incremented by 1. If the fail count is 0 at the end of the method then the value of the custom Encompass field CX.WF.HS.MVTHARDSTOP is set to "N" otherwise if the failure count is > 0 the value of CX.WF.HS.MVTHARDSTOP is set to "Y". The scenarios that are checked by this method are as follows:
+
+                - The loan is locked AND is failing QM per Mavent (field id 2400 = "Y" and field id COMPLIANCEREVIEW.X18 = "FAIL")
+                - The loan is locked AND is failing TILA/RESPA per Mavent (field id 2400 = "Y" and field id COMPLIANCEREVIEW.X14 = "FAIL")
+                - The loan is locked AND is failing High Cost per Mavent (field id 2400 = "Y" and field id COMPLIANCEREVIEW.X7 = "FAIL")
+                - The loan is locked AND is failing Higher Priced per Mavent (field id 2400 = "Y" and field id COMPLIANCEREVIEW.X16 = "FAIL")
+                - The loan is failing the Mavent State Rules test (field id COMPLIANCEREVIEW.X12 = "FAIL")
+                - The loan is failing a Mavent licensing test (field id COMPLIANCEREVIEW.X9 = "FAIL")
+                - The loan is failing a Mavent NMLS licensing test (field id COMPLIANCEREVIEW.X17 = "FAIL")
+                - The loan is failing a Mavent GSE test (field id COMPLIANCEREVIEW.X6 = "FAIL")
+                - The loan is failing a Mavent Enterprise Rules test (field id COMPLIANCEREVIEW.X5 = "FAIL")
+                - The loan is failing a Mavent HMDA test AND the HMDA status is not empty AND the HMDA status is something other than "Active Loan". (field id COMPLIANCEREVIEW.X8 = "FAIL" AND field id 1393 <> "" AND Field id 1393 <> "Active Loan")
+                        - The loan is failing a Mavent OFAC test AND the current loan status is Final Approved, Docs Requested, Docs Out, or Docs Back (field id COMPLIANCEREVIEW.X10 = "FAIL" AND (field id CX.LOAN.STATUS = "Final Approved" OR CX.LOAN.STATUS = "Docs Requested" OR CX.LOAN.STATUS = "Docs Out" OR CX.LOAN.STATUS = "Docs Back")
+                        - The loan is failing a Mavent test which is categorized in the "Other" category (field id COMPLIANCEREVIEW.X11 = "FAIL")
+            </div><br>
+
+            <div id="ValidateMI">
+                <h3><a href="#ValidateMI">ValidateMI</a></h3>
+                <p>
+                    Checks multiple scenarios and sets several custom fields in Encompass based on those scenarios. Those scenarios are:
+
+                    - If the loan type is Conventional AND the LTV is > 80% AND the monthly MI amount is $0.00 AND the upfront MI premium amount is $0.00 AND (lender paid MI is either set to No or is blank) - (field id 1172 = "Conventional" AND field id 353 >= 80.01m and field id 232 = 0 amd (field id 3533 = "N" OR field id 3533 = "")
+                    - If the condition is found to be true then the following custom Encompass fields are set to the values shown:
+                    - CX.WF.HS.MIREQUIRED = "Y"
+                    - CX.WF.HS.HASMI = "N"
+                    - CX.WF.HS.MITESTRESULT = "FAIL"
+
+                    - If the loan type is Conventional AND the LTV is > 80% AND (the monthly MI is not equal to 0.00 OR the upfront MI Premium is not equal to 0.00 OR lender paid MI is set to Yes) - (field id 1172 = "Conventional" AND field id 353 >= 80.01m AND (field id 232 <> 0 OR field id 337 <> 0 OR field id 3533 = "Y"))
+                            - If this condition is found to be true then the following custom Encompass fields are set to the values shown:
+                            - CX.WF.HS.MIREQUIRED = "Y"
+                            - CX.WF.HS.HASMI = "Y"
+                            - CX.WF.HS.MITESTRESULT = "PASS"
+
+                            - If the loan type is Conventional AND the LTV is < 80% - (field id 1172="Conventional" AND field id 353 < 80.0m ) - If this condition is found to be true then the following custom Encompass fields are set to the values shown: - CX.WF.HS.MIREQUIRED="N" - CX.WF.HS.HASMI="N" - CX.WF.HS.MITESTRESULT="PASS" - If the loan type is FHA AND (the monthly MI is equal to 0.00 OR the upfront MI Premium is equal to 0.00) - (field id 1172="FHA" AND (field id 232=0 OR field id 337=0)) - If this condition is found to be true then the following custom Encompass fields are set to the values shown: - CX.WF.HS.MIREQUIRED="Y" - CX.WF.HS.HASMI="N" - CX.WF.HS.MITESTRESULT="FAIL" - If the loan type is FHA AND (the monthly MI is NOT equal to 0.00 AND the upfront MI Premium is NOT equal to 0.00) - (field id 1172="FHA" AND (field id 232 <> 0 AND field id 337 <> 0))
+                                    - If this condition is found to be true then the following custom Encompass fields are set to the values shown:
+                                    - CX.WF.HS.MIREQUIRED = "Y"
+                                    - CX.WF.HS.HASMI = "Y"
+                                    - CX.WF.HS.MITESTRESULT = "PASS"
+
+                                    - If the loan type is VA - (field id 1172 = "VA")
+                                    - If this condition is found to be true then the following custom Encompass fields are set to the values shown:
+                                    - CX.WF.HS.MIREQUIRED = "N"
+                                    - CX.WF.HS.HASMI = "N"
+                                    - CX.WF.HS.MITESTRESULT = "PASS"
+                </p>
+            </div><br>
+
+            <div id="ValidateLockDaysRemaining">
+                <h3><a href="#ValidateLockDaysRemaining">ValidateLockDaysRemaining</a></h3>
+                <p>
+                    Calculates the number of days remaining on the current rate lock and sets the custom Encompass field CX.WF.HS.LOCKDAYSREM to that value.
+                </p>
+            </div><br>
+
+            <div id="InitialSubmission">
+                <h3><a href="#InitialSubmission">InitialSubmission</a></h3>
+                The InitialSubmission calls several other methods and executes some of it's own code. The logic flows as follows:
+
+                - Calls the ValidateMaventRun method
+                - Calls the ValdiateMaventResult method
+                - Calls the ValidateMaventHardStop method
+                - Reviews the value of the CX.WF.HS.MVTRUN and CX.WF.HS.MVTHARDSTOP custom fields. If the CX.WF.HS.MVTRUN field has a value of "FAIL" then an error flag is added, fi the CX.WF.HS.MVTHARDSTOP field has a value of "Y" then an error flag is added.
+                - Calls the <a href="#ValidateMI">ValidateMI</a> method
+                - Reviews the value of the CX.WF.HS.MITESTRESULT field. If the value is "FAIL" AND the loan type is Conventional, a Conventional specific error flag is added. If the value is "FAIL" and the loan type is FHA, an FHA specific error flag is added.
+                - Reviews to see if the value of CX.WF.HS.HASMI is set to Y. If it is, it runs an additional test to see if the CLTV and LTV are less than 80%. If so an error flag is added to tell the user that there is MI on a loan which doesn't require it.
+                - Calls the ValidateDIsclosures_APR method
+                - Reviews the value of the CX.WF.HS.APRTEST field. If the value is "FAIL" then an error flag is added to indicate that there is an APR variance
+                - Calls the <a href="#ValidateDisclosures_LockDate">ValidateDisclosures_LockDate</a> method
+                - Reviews the value of the CX.WF.HS.LOCKDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the loan has been locked since the last disclosure and that redisclosure is required.
+                - Calls the ValidateDisclosures_Product method
+                - Reviews the value of the CX.WF.HS.AMORTDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the amortization type has changed since the last disclosure and needs to be addressed or redisclosed.
+                - Calls the ValidateDisclosures_Variance method
+                - Reviews the CX.WF.HS.DISCFVTEST field. If the value is set to "FAIL" then adds an error message indicating that there have been fee changes which require redisclosures since the last disclosure was issued.
+                - Reviews the error flag count.
+                - If the count of error flags is zero, then the method updates the following fields to the values shown:
+                - CX.UW.LOGSTATUS = Current Date Time
+                - CX.LOAN.STATUS = "Submitted"
+                - CX.LOAN.DEPT = "Underwriting"
+                - CX.UW.STATUS = "To Be Assigned"
+                - Submitted Milestone is completed and date set to current date/time
+                - CX.TRACKING.UW.SUBMISSIONS = 1
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before initial submission can be completed.
+
+            </div><br>
+
+            <div id="UWCondApproval">
+                <h3><a href="#UWCondApproval">UWCondApproval</a></h3>
+                The UWCondApproval method calls several other methods and execute some it's own code. The logic flows as follows:
+
+                - Calls the ValidateMaventRun method
+                - Calls the ValidateMaventHardStop method
+                - Reviews the value of the CX.WF.HS.MVTRUN custom field. This method USED to check the Mavent Hard stop field as well but this code was commented out and is no longer active. This is because we did not want the fact that there may be a fee variance or dislcosure required to prevent Underwriting from approving the loan and pushing it back to processing.
+                - Calls the <a href="#ValidateMI">ValidateMI</a> method
+                - Reviews the value of the CX.WF.HS.MITESTRESULT field. If the value is "FAIL" AND the loan type is Conventional, a Conventional specific error flag is added. If the value is "FAIL" and the loan type is FHA, an FHA specific error flag is added.
+                - Reviews the value of the custom Encompass field "CX.LOAN.QMFACTORS.EVAL" which validates whether or not the UW has selected all of the necessary checkboxes on the QM Evalaution tab prior to conditional approval. If this field is not set to "Y" then an error flag is added indicating that all QM factors need to be evaluated in order to issue conditional approval.
+                - Reviews the value of the custom Encompass field "CX.FEMA.HASRUN" to ensure that that the UW has run the FEMA check to check for disasters declared for the subject property location. If the value of that field is empty, than the FEMA check has not been run and an error flag is added indicating that this is required.
+                - Reviews the error flag count
+                - If the error count is zero, then the method does the following:
+                - Updates the following fields to the values shown:
+                - CX.UW.LOGSTATUS = Current Date/Time
+                - CX.LOAN.STATUS = "Approved"
+                - CX.LOAN.DEPT = "Processing"
+                - CX.UW.STATUS = "Approved"
+                - CX.UW.STATUS.U = Current Encompass Username
+                - CX.UW.STATUS.D = Current Date/Time
+                - CX.UW.NOTES = A concatenated value consisting of Current Date/Time + the current username + any notes that the Underwriter entered
+                - CX.KM.PRINTSCENARIO = ""
+                - CX.KM.PRINTSCENARIO = "UW Conditional Approval"
+                - 2984 = current Encompass username
+                - 2301 = Current Date/Time
+                - 2302 = the value of CX.EXP.EARLIEST.DATE
+                - 984 = Current Encompass users full name
+                - Calls the StoreUWValues method
+                - Executes code to store the data properly in the CX.UWC.DATAVALIDATION.LOG field.
+                - Executes code to check the current AUS response value
+                - If the value is Approve/Eligible or Accept, sets the value of field id 3878 to "Y"
+                - If the value is Manual Underwriting, sets the value of field 3880 to "Y"
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before Conditional Approval can be issued
+
+                The following methods and code USED to be called by this method but have since been commented out as the business did not want hard stops for these at the time that the UW is issuing conditional approval:
+
+                - <a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a> method
+                - code to review the value of the CX.WF.HS.APRTEST field. If the value is "FAIL" then an error flag is added to indicate that there is an APR variance
+                - <a href="#ValidateDisclosures_LockDate">ValidateDisclosures_LockDate</a> method
+                - Code to review the value of the CX.WF.HS.LOCKDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the loan has been locked since the last disclosure and that redisclosure is required.
+                - ValidateDisclosures_Product method
+                - Code to review the value of the CX.WF.HS.AMORTDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the amortization type has changed since the last disclosure and needs to be addressed or redisclosed.
+                - ValidateDisclosures_Variance method
+            </div><br>
+
+            <div id="UWFinalApproval">
+                <h3><a href="#UWFinalApproval">UWFinalApproval</a></h3>
+                The UWFinalApproval method calls several other methods and execute some it's own code. The logic flows as follows:
+
+                - Calls the RequiredFields_FInal method
+                - Calls the ValidateMaventRun method
+                - Calls the ValidateMaventResult method
+                - Calls the ValidateMaventHardSTop method
+                - Reviews the value of the CX.WF.HS.MVTRUN custom field. If the value of the field is "N" then an error flag is added
+                - Reviews the value of the CX.WF.HS.MVTHARDSTOP custom field. If the value of the field is "Y" then an error flag is added
+                - Reviews the value of the CX.FAILINGQM custom field. If the value of the field is "X" then an error flag is added
+                - Calls the <a href="#ValidateMI">ValidateMI</a> method
+                - Reviews the value of the CX.WF.HS.MITESTRESULT field. If the value is "FAIL" AND the loan type is Conventional, a Conventional specific error flag is added. If the value is "FAIL" and the loan type is FHA, an FHA specific error flag is added.
+                - Reviews to see if the value of CX.WF.HS.HASMI is set to Y. If it is, it runs an additional test to see if the CLTV and LTV are less than 80%. If so an error flag is added to tell the user that there is MI on a loan which doesn't require it.
+                - Calls the <a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a> method
+                - Reviews the value of the CX.WF.HS.APRTEST field. If the value is "FAIL" then an error flag is added to indicate that there is an APR variance
+                - Reviews the value of the CX.WF.HS.LOCKDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the loan has been locked since the last disclosure and that redisclosure is required.
+                - Calls the ValidateDisclosures_Product method
+                - Reviews the value of the CX.WF.HS.AMORTDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the amortization type has changed since the last disclosure and needs to be addressed or redisclosed.
+                - Calls the ValidateDisclosures_Variance method
+                - Reviews the CX.WF.HS.DISCFVTEST field. If the value is set to "FAIL" then adds an error message indicating that there have been fee changes which require redisclosures since the last disclosure was issued.
+                - Calls the ValidateLockDaysRemaining method
+                - **This method used to check to see if the number of days remaining on the lock was six or less, if it were it would generate an error flag and prevent final approval from being issued. This code has since been commented out but could be uncommented/modified if/when needed.
+                - Reviews the value of the CX.LOAN.OPENPTDS field. If the value is > 0, adds an error flag
+                - Reviews field id ULDD.X31 and CX.LOAN.APPRAISALTYPE - If the Appraisal Type field is set to "FULL" and the loan type is not VA and not FHA, it validates that a value has been entered in field id ULDD.X31 (Appraisal ID). If the field is blank, then an error flag is added.
+                - Reviews the following custom Encompass fields: CX.UW.SSRSCORE.FNMA, CX.UW.SSRSCORE.FHLMC, CX.UW.SSR.NA.FNMA, CX.UW.SSR.NA.FHLMC, and CX.PROPERTY.TYPE.GLOBAL. If the loan type (field id 1172) equals "Conventional" and the property type (CX.PROPERTY.TYPE.GLOBAL) is NOT 2 Unit, 3 Unit, 4 Unit, or Manufactured Housing a subsequent check is run. The subsequent check adds an error flag if the appraisal type is set to "FULL" and CX.UW.SSRSCORE.FNMA and CX.UW.SSRSCORE.FHLMC have a value of 0, and CX.UW.SSR.NA.FNMA, CX.UW.SSR.NA.FHLMC have an empty value, an error flag is added indicating that SSR information is required.
+                - Reviews the estimated closing date field (field id 763) and the custom Encompass field for Approval Expiration date (CX.EXP.APPROVAL.EXPDATE) - If the estimated closing date is greater than the approval expiration date, an error flag is added.
+                - Reviews the value of the custom Encompass fields relating to UW Second signature (CX.UW.2NDSIG, and CX.UW.2NDSIG.U) - If CX.UW.2NDSIG is set to "Y", this indicates that the loan requires a second signature for final approval. The code then checks to see if a value exists for second signature UW signoff (CX.UW.2NDSIG.U), if that field is empty, then an error flag is added.
+                - Reviews the value of custom Encompass field CX.LCKC.VARIANCE - If the value of that field is set to anything other than "N" then an error flag is added.
+                - Reviews the value of the custom Encompass field CX.UWC.VARIANCE - If the value of that field is set to anything other than "N" then an error flag is added
+                - Reviews the value of the custom Encompass field CX.LOAN.QMFACTORS.EVAL - If the value of that field is set to anything other than "Y" then an error flag is added
+                - Reviews the value of the original purchase date field (1518), the case assignment date field (3042), the original cost field (25), the Appraised Value field (356) and the Refi Type field (URLA.X166). If the loan type (1172) equals "FHA" and the refi type (URLA.X166) is not equal to "StreamlineWithAppraisal" and the refi type (URLA.X166) is not equal to "StreamlineWithoutAppraisal", the code takes the case assignment date from field 3042, and subtracts 12 months from it and then checks to see if the purchase date is greater than or equal to the result (case assignment date - 12 months) AND whether the original cost is less than the appraised value. If this test resolves to true then an error flag is added.
+                - Reviews the value of the custom Encompass field "CX.FEMA.HASRUN" to ensure that that the UW has run the FEMA check to check for disasters declared for the subject property location. If the value of that field is empty, than the FEMA check has not been run and an error flag is added indicating that this is required.
+                - Reviews the value of field id 3076 (FHA Management Appraisal Logged Date). If that field is empty AND the loan type (1172) equals "FHA" AND the RefiType (URLA.X166) is not "StreamlineWithAppraisal" and the refi type (URLA.X166) is not equal to "StreamlineWithoutAppraisal" then an error flag is added indicating that the FHA appraisal log date must be completed.
+                - Reviews the value of CASASRN.X107 (Freddie Mac Lender Processing Point) and 1543 (UW Risk Assessment Type) and validates that if the value of 1543= "LP" ANDthe value of CASASRN.X107 is either "Prequal (No URLA) or "Application/Processing" then an error flag is added.
+                - Reviews the error flag count.
+                - If the count of error flags is zero, then the method updates the following fields to the values shown:
+                - CX.UW.LOGSTATUS = Current Date Time
+                - CX.LOAN.STATUS = "Final Approved"
+                - CX.LOAN.DEPT = "Processing"
+                - CX.UW.STATUS = "Final Approved"
+                - CX.UW.STATUS.U = Current Encompass Username
+                - CX.UW.STATUS.D = Current Date Time
+                - CX.UW.NOTES = DateTime + current username + any notes that the Underwriter has entered
+                - Final Approved Milestone is completed and date set to current date/time
+                - Calls the StoreUWValues method
+                - Executes code to log the final approval event to the CX.UWC.DATAVALIDATION.LOG
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before Final Approval can be issued.
+            </div><br>
+
+            <div id="RequiredFields_Final">
+                <h3><a href="#RequiredFields_Final">RequiredFields_Final</a></h3>
+                The RequiredFields_Final method currently only references some FHA specific fields (most other field checks are done via the other methods). That said, additional logic could be added to this method if/when additional scenarios arise. Currently this method performs the following checks:
+                - If the loan type (1172) equals "FHA" AND the loan purpose (19) is NOT equal to "Purchase" AND the Refi Type (URLA.X166) is NOT equal to "StreamlineWithAppraisal" AND Refi Type (URLA.X166) is NOT equal to "StreamlineWithoutAppraisal" then check to ensure that:
+                - Field 3042 (Case Assignment Date) is not empty - if it is empty add this field id and a message to the missing required fields list
+                - Field 1518 (Purchase Date) is not empty - if it is empty add this field id and a message to the missing required fields list
+                - Field 25 (Original Cost) is not empty OR if value is 0 - If so add this field id and a message to the missing required fields list
+                - Once these checks are completed, if there are any items in the missing required fields list a hard stop is displayed showing the user the list of fields and their corresponding messages
+            </div><br>
+
+            <div id="RequiredFields_IntlDisclosure">
+                <h3><a href="#RequiredFields_IntlDisclosure">RequiredFields_IntlDisclosure</a></h3>
+                The RequiredFields_IntlDisclosure method performs the following checks:
+                - If the loan type (1172) equals "FHA" and the loan purpose (19) is NOT equal to "Purchase" AND the Refi Type (URLA.X166) is equal to "FullDocumentation" a check is run for:
+                - Field 24 (Year Acquired) is empty - If it is empty add this field id and a message to the missing required fields list
+                - Field 25 (Original Cost) is empty or has a value of 0 - If so, add this field id and a message to the missing required fields list
+                - If the loan type (1172) = "VA" then checks are run for:
+                - Field 24 (Year Acquired) is empty - If it is empty add this field id and a message to the missing required fields list
+                - Field 25 (Original Cost) is empty or has a value of 0 - If so, add this field id and a message to the missing required fields list
+                - Field VASUMM.X31 (Veteran 1003 position) is empty - If empty then add this field id and a message to the missing required fields list
+                - Field 1065 (Borrower Occupancy Certification) is empty - If empty then add this field id and a message to the missing required fields list
+                - Custom Encompass Fields CX.VA.HAS.CCEXPENSES (Have Child Care Expenses), CX.VA.HAS.CCBUTNOEXP (Child Care but No Expense), CX.VA.HAS.NOCCEXPENSES (No Child Care Expenses) - If each of these fields is empty, then a message is added that one of these options is required to be selected to the required fields list.
+                - Custom Encompass field CX.VA.HAS.CCEXPENSES (Have Child Care Expenses) and field USDA.X97 ( USDA - Chid Care Cost Per Month) - If CX.VA.HAS.CCEXPENSES is set to a value of "X" AND teh value of USDA.X97 is empty, then a message is added that if the borrower has CC Expenses, then an amount must be entered for monthly child care expenses to the required fields list.
+                - Custom Encompass field CX.VA.HAS.CCBUTNOEXP (Child Care but No Expense) - If CX.VA.HAS.CCBUTNOEXP is set to a value of "X" AND (field USDA.X98 (Child Care Provider) is blank OR field USDA.X99 (Child Care Address) is blank OR field USDA.X100 (Child Care City) is blank OR field field USDA.X101 (Child Care State) is blank OR USDA.X102 (Child Care Zip) is blank OR USDA.X103 (Child Care Phone) is blank) then an error message is added indicating that one of more child care provider fields are blank to the required field list.
+                - If the loan purpose (19) is NOT equal to "Purchase" AND and Refi Type (URLA.X166) is NOT Equal to "StreamlineWithAppraisal" AND Refi Type (URLA.X166) is NOT Equal to "StreamlineWithoutAppraisal" then validate that field VASUMM.X125 (VA Cash Out Refi Type) has a value. If it does not add this field and a message to the missing required fields list
+                - If the loan purpose (19) is NOT equal to "Purchase" AND and (Refi Type (URLA.X166) is Equal to "StreamlineWithAppraisal" OR Refi Type (URLA.X166) is Equal to "StreamlineWithoutAppraisal") then validate that fields VASUMM.X15 (Previous Loan Amount), VASUMM.X18 (Previous Loan Term), VASUMM.X19 (Previous Loan Payment), 120 (Present Mortgage Payment), and VASUMM.X16 (Present Mortgage Interest Rate) have values. If any do not, add those fields and a message to the missing required fields list.
+                - Evaluates the missing required fields list:
+                - If there have been any items added to this list, then display a hard stop to the end user which shows the missing field id and message for any missing fields.
+                - If there were no missing fields identified, then the InitialDisclosures method is called
+            </div><br>
+
+            <div id="UWRefinal">
+                <h3><a href="#UWRefinal">UWRefinal</a></h3>
+                The UWRefinal method calls several other methods and execute some it's own code. The logic flows as follows:
+                - Calls the ValidateMaventRun method
+                - Calls the ValidateMaventResult method
+                - Calls the ValidateMaventHardStop method
+                - Reviews the value of the CX.WF.HS.MVTRUN custom field. If the value of the field is "N" then an error flag is added
+                - Reviews the value of the CX.WF.HS.MVTHARDSTOP custom field. If the value of the field is "Y" then an error flag is added
+                - Reviews the value of the CX.FAILINGQM custom field. If the value of the field is "X" then an error flag is added
+                - Calls the <a href="#ValidateMI">ValidateMI</a> method
+                - Reviews the value of the CX.WF.HS.MITESTRESULT field. If the value is "FAIL" AND the loan type is Conventional, a Conventional specific error flag is added. If the value is "FAIL" and the loan type is FHA, an FHA specific error flag is added.
+                - Reviews to see if the value of CX.WF.HS.HASMI is set to Y. If it is, it runs an additional test to see if the CLTV and LTV are less than 80%. If so an error flag is added to tell the user that there is MI on a loan which doesn't require it.
+                - Calls the <a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a> method
+                - Reviews the value of the CX.WF.HS.APRTEST field. If the value is "FAIL" then an error flag is added to indicate that there is an APR variance
+                - Calls the <a href="#ValidateDisclosures_LockDate">ValidateDisclosures_LockDate</a> method
+                - Reviews the value of the CX.WF.HS.LOCKDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the loan has been locked since the last disclosure and that redisclosure is required.
+                - Calls the ValidateDisclosures_Product method
+                - Reviews the value of the CX.WF.HS.AMORTDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the amortization type has changed since the last disclosure and needs to be addressed or redisclosed.
+                - Calls the ValidateDisclosures_Variance method
+                - Reviews the CX.WF.HS.DISCFVTEST field. If the value is set to "FAIL" then adds an error message indicating that there have been fee changes which require redisclosures since the last disclosure was issued.
+                - **This method used to check to see if the estimated disbursement date was greater than the lock expiration date. This was commented out following the decision in fall of 2021 to auto extend locks at no cost if/when they reached docs out or >**
+                - Reviews the value of the CX.LOAN.OPENPTDS field. If the value is > 0, adds an error flag
+                - Reviews field id ULDD.X31 and CX.LOAN.APPRAISALTYPE - If the Appraisal Type field is set to "FULL" and the loan type is not VA and not FHA, it validates that a value has been entered in field id ULDD.X31 (Appraisal ID). If the field is blank, then an error flag is added.
+                - Reviews the following custom Encompass fields: CX.UW.SSRSCORE.FNMA, CX.UW.SSRSCORE.FHLMC, CX.UW.SSR.NA.FNMA, CX.UW.SSR.NA.FHLMC, and CX.PROPERTY.TYPE.GLOBAL. If the loan type (field id 1172) equals "Conventional" and the property type (CX.PROPERTY.TYPE.GLOBAL) is NOT 2 Unit, 3 Unit, 4 Unit, or Manufactured Housing a subsequent check is run. The subsequent check adds an error flag if the appraisal type is set to "FULL" and CX.UW.SSRSCORE.FNMA and CX.UW.SSRSCORE.FHLMC have a value of 0, and CX.UW.SSR.NA.FNMA, CX.UW.SSR.NA.FHLMC have an empty value, an error flag is added indicating that SSR information is required.
+                - Reviews the estimated closing date field (field id 763) and the custom Encompass field for Approval Expiration date (CX.EXP.APPROVAL.EXPDATE) - If the estimated closing date is greater than the approval expiration date, an error flag is added.
+                - Reviews the value of the custom Encompass fields relating to UW Second signature (CX.UW.2NDSIG, and CX.UW.2NDSIG.U) - If CX.UW.2NDSIG is set to "Y", this indicates that the loan requires a second signature for final approval. The code then checks to see if a value exists for second signature UW signoff (CX.UW.2NDSIG.U), if that field is empty, then an error flag is added.
+                - Reviews the value of custom Encompass field CX.LCKC.VARIANCE - If the value of that field is set to anything other than "N" then an error flag is added.
+                - Reviews the value of the custom Encompass field CX.UWC.VARIANCE - If the value of that field is set to anything other than "N" then an error flag is added
+                - Reviews the value of the custom Encompass field CX.LOAN.QMFACTORS.EVAL - If the value of that field is set to anything other than "Y" then an error flag is added
+                - Reviews the value of the custom Encompass field "CX.FEMA.HASRUN" to ensure that that the UW has run the FEMA check to check for disasters declared for the subject property location. If the value of that field is empty, than the FEMA check has not been run and an error flag is added indicating that this is required.
+                - Reviews the value of CASASRN.X107 (Freddie Mac Lender Processing Point) and 1543 (UW Risk Assessment Type) and validates that if the value of 1543= "LP" ANDthe value of CASASRN.X107 is either "Prequal (No URLA) or "Application/Processing" then an error flag is added.
+                - Reviews the error flag count.
+                - If the count of error flags is zero, then the method updates the following fields to the values shown:
+                - CX.UW.LOGSTATUS = Current Date Time
+                - CX.LOAN.STATUS = "Final Approved"
+                - CX.LOAN.DEPT = "Processing"
+                - CX.UW.STATUS = "Final Approved"
+                - CX.UW.STATUS.U = Current Encompass Username
+                - CX.UW.STATUS.D = Current Date Time
+                - CX.UW.NOTES = DateTime + current username + any notes that the Underwriter has entered
+                - Final Approved Milestone updated to the current date/time
+                - Calls the StoreUWValues method
+                - Executes code to log the Re-final approval event to the CX.UWC.DATAVALIDATION.LOG
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before Final Approval can be reissued.
+            </div><br>
+
+            <div id="SigningReq">
+                <h3><a href="#SigningReq">SigningReq</a></h3>
+                The SigningReq method calls several other methods and execute some it's own code. The logic flows as follows:
+                - Calls the ValidateMaventRun method
+                - Calls the ValidateMaventResult method
+                - Calls the ValidateMaventHardStop method
+                - Reviews the value of the CX.WF.HS.MVTRUN custom field. If the value of the field is "N" then an error flag is added
+                - Reviews the value of the CX.WF.HS.MVTHARDSTOP custom field. If the value of the field is "Y" then an error flag is added
+                - Calls the <a href="#ValidateMI">ValidateMI</a> method
+                - Reviews the value of the CX.WF.HS.MITESTRESULT field. If the value is "FAIL" AND the loan type is Conventional, a Conventional specific error flag is added. If the value is "FAIL" and the loan type is FHA, an FHA specific error flag is added.
+                - Reviews to see if the value of CX.WF.HS.HASMI is set to Y. If it is, it runs an additional test to see if the CLTV and LTV are less than 80%. If so an error flag is added to tell the user that there is MI on a loan which doesn't require it.
+                - Calls the <a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a> method
+                - Reviews the value of the CX.WF.HS.APRTEST field. If the value is "FAIL" then an error flag is added to indicate that there is an APR variance
+                - Calls the <a href="#ValidateDisclosures_LockDate">ValidateDisclosures_LockDate</a> method
+                - Reviews the value of the CX.WF.HS.LOCKDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the loan has been locked since the last disclosure and that redisclosure is required.
+                - Calls the ValidateDisclosures_Product method
+                - Reviews the value of the CX.WF.HS.AMORTDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the amortization type has changed since the last disclosure and needs to be addressed or redisclosed.
+                - Calls the ValidateDisclosures_Variance method
+                - Reviews the CX.WF.HS.DISCFVTEST field. If the value is set to "FAIL" then adds an error message indicating that there have been fee changes which require redisclosures since the last disclosure was issued.
+                - **This method used to check to see if the estimated disbursement date was greater than the lock expiration date. This was commented out following the decision in fall of 2021 to auto extend locks at no cost if/when they reached docs out or >**
+                - Reviews the Estimated Closing Date (763) along with Approval Expiration Date (CX.EXP.APPROVAL.EXPDATE) and adds an error flag if the closing date will be greater than the approval expiration date
+                - Reviews the Lock Variance Exists field (CX.LCKC.VARIANCE), if the value is anything other than "N" adds an error flag for a lock variance
+                - Reviews the Initial Closing Disclosure sent date (3977), if it is blank then an error flag is set to indicate that there is no initial CD out yet so signing cannot be requested
+                - Reviews the error flag count.
+                - If the count of error flags is zero, then the method updates the following fields to the values shown:
+                - CX.LOAN.REQSIGNING.ACTIVE = "X"
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before a signing appointment can be requested
+            </div><br>
+
+            <div id="DocsReq">
+                <h3><a href="#DocsReq">DocsReq</a></h3>
+                The DocsReq method calls several other methods and execute some it's own code. The logic flows as follows:
+                - Calls the ValidateMaventRun method
+                - Calls the ValidateMaventResult method
+                - Calls the ValidateMaventHardStop method
+                - Reviews the value of the CX.WF.HS.MVTRUN custom field. If the value of the field is "N" then an error flag is added
+                - Reviews the value of the CX.WF.HS.MVTHARDSTOP custom field. If the value of the field is "Y" then an error flag is added
+                - Calls the <a href="#ValidateMI">ValidateMI</a> method
+                - Reviews the value of the CX.WF.HS.MITESTRESULT field. If the value is "FAIL" AND the loan type is Conventional, a Conventional specific error flag is added. If the value is "FAIL" and the loan type is FHA, an FHA specific error flag is added.
+                - Reviews to see if the value of CX.WF.HS.HASMI is set to Y. If it is, it runs an additional test to see if the CLTV and LTV are less than 80%. If so an error flag is added to tell the user that there is MI on a loan which doesn't require it.
+                - Calls the <a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a> method
+                - Reviews the value of the CX.WF.HS.APRTEST field. If the value is "FAIL" then an error flag is added to indicate that there is an APR variance
+                - Calls the <a href="#ValidateDisclosures_LockDate">ValidateDisclosures_LockDate</a> method
+                - Reviews the value of the CX.WF.HS.LOCKDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the loan has been locked since the last disclosure and that redisclosure is required.
+                - Calls the ValidateDisclosures_Product method
+                - Reviews the value of the CX.WF.HS.AMORTDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the amortization type has changed since the last disclosure and needs to be addressed or redisclosed.
+                - Calls the ValidateDisclosures_Variance method
+                - Reviews the CX.WF.HS.DISCFVTEST field. If the value is set to "FAIL" then adds an error message indicating that there have been fee changes which require redisclosures since the last disclosure was issued.
+                - **This method used to check to see if the estimated disbursement date was greater than the lock expiration date. This was commented out following the decision in fall of 2021 to auto extend locks at no cost if/when they reached docs out or >
+                - Reviews the CX.LOAN.STATUS and CX.UW.STATUS fields, if either of them contain a value other than "Final Approved" then an error flag is set
+                - Reviews the Estimated Closing Date (763) along with Approval Expiration Date (CX.EXP.APPROVAL.EXPDATE) and adds an error flag if the closing date will be greater than the approval expiration date
+                - Reviews the Lock Variance Exists field (CX.LCKC.VARIANCE), if the value is anything other than "N" adds an error flag for a lock variance
+                - Reviews the Initial Closing Disclosure sent date (3977), if it is blank then an error flag is set to indicate that there is no initial CD out yet so signing cannot be requested
+                - Reviews CX.LOAN.REQSIGNING.ACTIVE and CX.LOAN.REQSIGNING.DATE fields. If the signing date field is empty, adds an error flag. If signing date is NOT empty, but there is not an active signing appointment, sets an error flag. If there is an active signing appointment and the signing request date is not empty but the signing request date is in the past, set an error flag.
+                - Reviews the value of the CX.FAILINGQM custom field. If the value of the field is "X" then an error flag is added
+                - Reviews the CX.WF.HS.HASMI field to indicate whether or not the loan has mortgage insurance. If it does, it then looks at CX.LOAN.MI.MONTHSCHECK and CX.LOAN.MI.CUSHIONCHECK which are both calculated custom Encompass fields which will have a value of "Y" if data entry on the aggregate impound set up has been done correctly for mortgage insurance. If the value of either of these fields is "N", then an error flag is set.
+                - Reviews field ids 4008 and 4009 for every borrower pair. If the value of any of those fields is anything other than "Individual" adds an error flag that the borrower type needs to be corrected
+                - Reviews the error flag count.
+                - If the count of error flags is zero, then the method updates the following fields to the values shown:
+                - CX.LOAN.STATUS = "Docs Requested"
+                - CX.LOAN.DEPT = "Closing"
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before Docs can be requested
+            </div><br>
+
+            <div id="Resubmission">
+                <h3><a href="#Resubmission">Resubmission</a></h3>
+                The Resubmission method calls several other methods and execute some it's own code. The logic flows as follows:
+                - Calls the ValidateMaventRun method
+                - Calls the ValidateMaventResult method
+                - Calls the ValidateMaventHardStop method
+                - Reviews the value of the CX.WF.HS.MVTRUN custom field. If the value of the field is "N" then an error flag is added
+                - Reviews the value of the CX.WF.HS.MVTHARDSTOP custom field. If the value of the field is "Y" then an error flag is added
+                - Calls the <a href="#ValidateMI">ValidateMI</a> method
+                - Reviews the value of the CX.WF.HS.MITESTRESULT field. If the value is "FAIL" AND the loan type is Conventional, a Conventional specific error flag is added. If the value is "FAIL" and the loan type is FHA, an FHA specific error flag is added.
+                - Reviews to see if the value of CX.WF.HS.HASMI is set to Y. If it is, it runs an additional test to see if the CLTV and LTV are less than 80%. If so an error flag is added to tell the user that there is MI on a loan which doesn't require it.
+                - Calls the <a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a> method
+                - Reviews the value of the CX.WF.HS.APRTEST field. If the value is "FAIL" then an error flag is added to indicate that there is an APR variance
+                - Calls the <a href="#ValidateDisclosures_LockDate">ValidateDisclosures_LockDate</a> method
+                - Reviews the value of the CX.WF.HS.LOCKDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the loan has been locked since the last disclosure and that redisclosure is required.
+                - Calls the ValidateDisclosures_Product method
+                - Reviews the value of the CX.WF.HS.AMORTDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the amortization type has changed since the last disclosure and needs to be addressed or redisclosed.
+                - Calls the ValidateDisclosures_Variance method
+                - Reviews the CX.WF.HS.DISCFVTEST field. If the value is set to "FAIL" then adds an error message indicating that there have been fee changes which require redisclosures since the last disclosure was issued.
+                - Reviews the value of the CX.FAILINGQM custom field. If the value of the field is "X" then an error flag is added
+                - Reviews the Lock Variance Exists field (CX.LCKC.VARIANCE), if the value is anything other than "N" adds an error flag for a lock variance
+                - Reviews field 3977 (Initial CD Date) to see if an initial CD has been issued. If it hasn't, adds an error message flag unless the CD requirement has been bypassed by a Processing Manager (CX.LOAN.RESUBCD.BYPASS = "Y")
+                - Reviews the CX.WF.HS.HASMI field to indicate whether or not the loan has mortgage insurance. If it does, it then looks at CX.LOAN.MI.MONTHSCHECK and CX.LOAN.MI.CUSHIONCHECK which are both calculated custom Encompass fields which will have a value of "Y" if data entry on the aggregate impound set up has been done correctly for mortgage insurance. If the value of either of these fields is "N", then an error flag is set.
+                - Reviews the error flag count.
+                - If the count of error flags is zero AND the current value of CX.UW.STATUS = "Approved", then the method updates the following fields to the values shown:
+                - CX.UW.LOGSTATUS = Current Date Time
+                - CX.LOAN.STATUS = "Resubmitted"
+                - CX.LOAN.DEPT = "Underwriting"
+                - CX.UW.STATUS = "Pending Condition Review"
+                - CX.TRACKING.UW.SUBMISSIONS = 1 is added to the existing value stored in custom Encompass field (CX.TRACKING.UW.SUBMISSIONS)
+                - If the count of error flags is zero AND the current value of CX.UW.STATUS = "Suspended" OR "Recommended for Decline", then the method updates the following fields to the values shown:
+                - CX.UW.LOGSTATUS = Current Date Time
+                - CX.LOAN.STATUS = "Resubmitted"
+                - CX.LOAN.DEPT = "Underwriting"
+                - CX.UW.STATUS = "Pending Suspense Review"
+                - CX.TRACKING.UW.SUBMISSIONS = 1 is added to the existing value stored in custom Encompass field (CX.TRACKING.UW.SUBMISSIONS)
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before the loan can be resubmitted
+            </div><br>
+
+            <div id="UWSuspense">
+                <h3><a href="#UWSuspense">UWSuspense</a></h3>
+                The UWSuspense method calls several other methods and execute some it's own code. The logic flows as follows:
+                - Calls the ValidateMaventRun method
+                - Calls the ValidateMaventResult method
+                - Calls the ValidateMaventHardStop method
+                - Reviews the value of the CX.WF.HS.MVTRUN custom field. If the value of the field is "N" then an error flag is added
+                - Reviews the value of the CX.WF.HS.MVTHARDSTOP custom field. If the value of the field is "Y" then an error flag is added
+                - Calls the <a href="#ValidateMI">ValidateMI</a> method
+                - Reviews the value of the CX.WF.HS.MITESTRESULT field. If the value is "FAIL" AND the loan type is Conventional, a Conventional specific error flag is added. If the value is "FAIL" and the loan type is FHA, an FHA specific error flag is added.
+                - Calls the <a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a> method
+                - Reviews the value of the CX.WF.HS.APRTEST field. If the value is "FAIL" then an error flag is added to indicate that there is an APR variance
+                - Calls the <a href="#ValidateDisclosures_LockDate">ValidateDisclosures_LockDate</a> method
+                - Reviews the value of the CX.WF.HS.LOCKDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the loan has been locked since the last disclosure and that redisclosure is required.
+                - Calls the ValidateDisclosures_Product method
+                - Reviews the value of the CX.WF.HS.AMORTDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the amortization type has changed since the last disclosure and needs to be addressed or redisclosed.
+                - Calls the ValidateDisclosures_Variance method
+                - Reviews the CX.WF.HS.DISCFVTEST field. If the value is set to "FAIL" then adds an error message indicating that there have been fee changes which require redisclosures since the last disclosure was issued.
+                - Reviews the value of the custom Encompass field "CX.FEMA.HASRUN" to ensure that that the UW has run the FEMA check to check for disasters declared for the subject property location. If the value of that field is empty, than the FEMA check has not been run and an error flag is added indicating that this is required.
+                - Reviews the error flag count.
+                - If the count of error flags is zero, then the method updates the following fields to the values shown:
+                - CX.UW.LOGSTATUS = Current Date Time
+                - CX.LOAN.STATUS = "Suspended"
+                - CX.LOAN.DEPT = "Processing"
+                - CX.UW.STATUS = "Suspended"
+                - CX.UW.STATUS.U = Current Username
+                - CX.UW.STATUS.D = Current Date Time
+                - CX.UW.NOTES = Concatenated value containing current date/time, current username, and any notes entered by the Underwriter
+                - 2985 = Current Username
+                - 2303 = Current Date Time
+                - 984 = Current User Full Name
+                - Calls the StoreUWValues method
+                - Adds the UW Notes to the CX.UWC.DATAVALIDATION.LOG field
+                - If the count of error flags is greater than zero
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before the Suspense can be issued
+            </div><br>
+
+            <div id="UWRFD">
+                <h3><a href="#UWRFD">UWRFD</a></h3>
+                The UWRFD method calls several other methods and execute some it's own code. The logic flows as follows:
+                - Reviews the value of the custom Encompass field "CX.FEMA.HASRUN" to ensure that that the UW has run the FEMA check to check for disasters declared for the subject property location. If the value of that field is empty, than the FEMA check has not been run and an error flag is added indicating that this is required.
+                - Reviews the error flag count.
+                - If the count of error flags is zero, then the method updates the following fields to the values shown:
+                - CX.UW.LOGSTATUS = Current Date Time
+                - CX.LOAN.STATUS = "Recommended for Decline"
+                - CX.LOAN.DEPT = "Processing"
+                - CX.UW.STATUS = "Recommended for Decline"
+                - CX.UW.STATUS.U = Current Username
+                - CX.UW.STATUS.D = Current Date Time
+                - CX.UW.NOTES = Concatenated value containing current date/time, current username, and any notes entered by the Underwriter
+                - Calls the StoreUWValues method
+                - Adds the UW Notes to the CX.UWC.DATAVALIDATION.LOG field
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before the Recommendation for Decline can be issued
+            </div><br>
+
+            <div id="Refinal">
+                <h3><a href="#Refinal">Refinal</a></h3>
+                The Refinal method calls several other methods and execute some it's own code. The logic flows as follows:
+                - Calls the ValidateMaventRun method
+                - Calls the ValidateMaventResult method
+                - Calls the ValidateMaventHardStop method
+                - Reviews the value of the CX.WF.HS.MVTRUN custom field. If the value of the field is "N" then an error flag is added
+                - Reviews the value of the CX.WF.HS.MVTHARDSTOP custom field. If the value of the field is "Y" then an error flag is added
+                - Calls the <a href="#ValidateMI">ValidateMI</a> method
+                - Reviews the value of the CX.WF.HS.MITESTRESULT field. If the value is "FAIL" AND the loan type is Conventional, a Conventional specific error flag is added. If the value is "FAIL" and the loan type is FHA, an FHA specific error flag is added.
+                - Reviews to see if the value of CX.WF.HS.HASMI is set to Y. If it is, it runs an additional test to see if the CLTV and LTV are less than 80%. If so an error flag is added to tell the user that there is MI on a loan which doesn't require it.
+                - Calls the <a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a> method
+                - Reviews the value of the CX.WF.HS.APRTEST field. If the value is "FAIL" then an error flag is added to indicate that there is an APR variance
+                - Calls the <a href="#ValidateDisclosures_LockDate">ValidateDisclosures_LockDate</a> method
+                - Reviews the value of the CX.WF.HS.LOCKDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the loan has been locked since the last disclosure and that redisclosure is required.
+                - Calls the ValidateDisclosures_Product method
+                - Reviews the value of the CX.WF.HS.AMORTDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the amortization type has changed since the last disclosure and needs to be addressed or redisclosed.
+                - Calls the ValidateDisclosures_Variance method
+                - Reviews the CX.WF.HS.DISCFVTEST field. If the value is set to "FAIL" then adds an error message indicating that there have been fee changes which require redisclosures since the last disclosure was issued.
+                - Reviews the value of the CX.FAILINGQM custom field. If the value of the field is "X" then an error flag is added
+                - Reviews the CX.WF.HS.HASMI field to indicate whether or not the loan has mortgage insurance. If it does, it then looks at CX.LOAN.MI.MONTHSCHECK and CX.LOAN.MI.CUSHIONCHECK which are both calculated custom Encompass fields which will have a value of "Y" if data entry on the aggregate impound set up has been done correctly for mortgage insurance. If the value of either of these fields is "N", then an error flag is set.
+                - Reviews the error flag count.
+                - If the count of error flags is zero, then the method updates the following fields to the values shown:
+                - CX.UW.LOGSTATUS = Current Date Time
+                - CX.LOAN.STATUS = "Recommended for Decline"
+                - CX.LOAN.DEPT = "Underwriting"
+                - CX.UW.STATUS = "Pending Re-Final Review"
+                - CX.TRACKING.UW.SUBMISSIONS = 1 is added to the existing value stored in custom Encompass field (CX.TRACKING.UW.SUBMISSIONS)
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before the Processor can resubmit for Refinal
+            </div><br>
+
+            <div id="DocsOut">
+                <h3><a href="#DocsOut">DocsOut</a></h3>
+                The DocsOut method calls several other methods and execute some it's own code. The logic flows as follows:
+                - Review the value of the custom Encompass field CX.UW.STATUS, if the value of that field is not "Final Approved" then add an error flag
+                - Review the estimated disbursement date (2553) and if that date is less than the lock expiration date (762) then add an error flag
+                - Calls the ValidateMaventRun method
+                - Calls the ValidateMaventResult method
+                - Calls the ValidateMaventHardStop method
+                - Reviews the value of the CX.WF.HS.MVTRUN custom field. If the value of the field is "N" then an error flag is added
+                - Reviews the value of the CX.WF.HS.MVTHARDSTOP custom field. If the value of the field is "Y" then an error flag is added
+                - Calls the <a href="#ValidateMI">ValidateMI</a> method
+                - Reviews the value of the CX.WF.HS.MITESTRESULT field. If the value is "FAIL" AND the loan type is Conventional, a Conventional specific error flag is added. If the value is "FAIL" and the loan type is FHA, an FHA specific error flag is added.
+                - Calls the <a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a> method
+                - Reviews the value of the CX.WF.HS.APRTEST field. If the value is "FAIL" then an error flag is added to indicate that there is an APR variance
+                - Calls the <a href="#ValidateDisclosures_LockDate">ValidateDisclosures_LockDate</a> method
+                - Reviews the value of the CX.WF.HS.LOCKDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the loan has been locked since the last disclosure and that redisclosure is required.
+                - Calls the ValidateDisclosures_Product method
+                - Reviews the value of the CX.WF.HS.AMORTDISCTEST field. If the value is set to "FAIL" then adds an error flag indicating that the amortization type has changed since the last disclosure and needs to be addressed or redisclosed.
+                - Calls the ValidateDisclosures_Variance method
+                - Reviews the CX.WF.HS.DISCFVTEST field. If the value is set to "FAIL" then adds an error message indicating that there have been fee changes which require redisclosures since the last disclosure was issued.
+                - Reviews the value of the CX.FAILINGQM custom field. If the value of the field is "X" then an error flag is added
+                - Reviews the CX.LOAN.LOCK.PRGRMVARIANCE field, if the value is set to "Y" then an error flag is added
+                - Reviews the Estimated Closing Date (762) and the approval expiration date CX.EXP.APPROVAL.EXPDATE, if the closing date is > that the approval expiration date, an error flag is added
+                - Reviews the Lock Variance flag (CX.LCKC.VARIANCE), if the value is anything other than "N" then it adds an error flag
+                - Reviews the value of the CX.FAILINGQM custom field. If the value of the field is "X" then an error flag is added
+                - Reviews the CX.WF.HS.HASMI field to indicate whether or not the loan has mortgage insurance. If it does, it then looks at CX.LOAN.MI.MONTHSCHECK and CX.LOAN.MI.CUSHIONCHECK which are both calculated custom Encompass fields which will have a value of "Y" if data entry on the aggregate impound set up has been done correctly for mortgage insurance. If the value of either of these fields is "N", then an error flag is set.
+                - Reviews the error flag count.
+                - If the count of error flags is zero, then the method updates the following fields to the values shown:
+                - CX.LOAN.STATUS = "Docs Out"
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before loan can be status'd as Docs Out
+            </div><br>
+
+            <div id="FundLoan">
+                <h3><a href="#FundLoan">FundLoan</a></h3>
+                The FundLoan method calls several other methods and execute some it's own code. The logic flows as follows:
+                - Review the value of the custom Encompass field CX.UW.STATUS, if the value of that field is not "Final Approved" then add an error flag
+                - Review the lock expiration date, if it is less than today's date then add an error flag
+                - Calls the ValidateMaventRun method
+                - Calls the ValidateMaventResult method
+                - Calls the ValidateMaventHardStop method
+                - Reviews the value of the CX.WF.HS.MVTRUN custom field. If the value of the field is "N" then an error flag is added
+                - Reviews the value of the CX.WF.HS.MVTHARDSTOP custom field. If the value of the field is "Y" then an error flag is added
+                - Calls the <a href="#ValidateMI">ValidateMI</a> method
+                - Reviews the value of the CX.WF.HS.MITESTRESULT field. If the value is "FAIL" AND the loan type is Conventional, a Conventional specific error flag is added. If the value is "FAIL" and the loan type is FHA, an FHA specific error flag is added.
+                - Calls the <a href="#ValidateDisclosures_APR">ValidateDisclosures_APR</a> method
+                - Reviews the value of the CX.WF.HS.APRTEST field. If the value is "FAIL" then an error flag is added to indicate that there is an APR variance
+                - Calls the ValidateDisclosures_Variance method
+                - Reviews the CX.WF.HS.DISCFVTEST field. If the value is set to "FAIL" then adds an error message indicating that there have been fee changes which require redisclosures since the last disclosure was issued.
+                - Reviews the CX.LOAN.LOCK.PRGRMVARIANCE field, if the value is set to "Y" then an error flag is added
+                - Reviews the Open PTA, Open PTD, Open PTF, and Open ACC condition fields (CX.LOAN.OPENPTAS, CX.LOAN.OPENPTDS, CX.LOAN.OPENPTFS, CX.LOAN.OPENACS). If any of those fields reflect a number greater than 0, then an error flag is added.
+                - Reviews the Lock Variance flag (CX.LCKC.VARIANCE), if the value is anything other than "N" then it adds an error flag
+                - Reviews the value of the CX.FAILINGQM custom field. If the value of the field is "X" then an error flag is added
+                - Reviews the CX.WF.HS.HASMI field to indicate whether or not the loan has mortgage insurance. If it does, it then looks at CX.LOAN.MI.MONTHSCHECK and CX.LOAN.MI.CUSHIONCHECK which are both calculated custom Encompass fields which will have a value of "Y" if data entry on the aggregate impound set up has been done correctly for mortgage insurance. If the value of either of these fields is "N", then an error flag is set.
+                - Reviews the error flag count.
+                - If the count of error flags is zero, then the method updates the following fields to the values shown:
+                - CX.LOAN.STATUS = "Funded"
+                - CX.LOAN.DEPT = "Post-Closing"
+                - Funded Milestone is completed and set to current date/time
+                - If the error count is NOT equal to zero, then a form is shown which lists all of the error flags and tells the user that these hard stops need to be addressed before loan can be Funded
+            </div><br>
+
+            <div id="LogUWCClear">
+                <h3><a href="#LogUWCClear">LogUWCClear</a></h3>
+                The LogUWCClear method updates the CX.UWC.DATAVALIDATION.LOG field with the current username, datetime, and a message that the the user cleared the UW Comparison variances
+            </div><br>
+
+            <div id="StoreUWValues">
+                <h3><a href="#StoreUWValues">StoreUWValues</a></h3>
+                The StoreUWValues method currently does not call any other methods but rather executes its own code and sets the values of numerous custom fields. The logic flows as follows:
+                - The code first identifies the number of borrower pairs associated with the current loan
+                - The code then loops over each borrower pair setting the following custom fields the [i] shown below is replaced by the borrower pair number from the current loop:
+                - CX.UWC.BP.[i].BFIRSTNAME = Current value from field id 4000
+                - CX.UWC.BP.[i].BMIDNAME = Current value from field id 4001
+                - CX.UWC.BP.[i].BLASTNAME = Current value from field id 4002
+                - CX.UWC.BP.[i].BSUFFIX = Current value from field id 4003
+                - CX.UWC.BP.[i].BSSN = Current value from field id 65
+                - CX.UWC.BP.[i].BMARITAL = Current value from field id 52
+                - CX.UWC.BP.[i].BDOB = Current value from field id 1402
+                - CX.UWC.BP.[i].CBDOB = Current value from field id 1403
+                - CX.UWC.BP.[i].CBFIRSTNAME = Current value from field id 4004
+                - CX.UWC.BP.[i].CBMIDNAME = Current value from field id 4005
+                - CX.UWC.BP.[i].CBLASTNAME = Current value from field id 4006
+                - CX.UWC.BP.[i].CBSUFFIX = Current value from field id 4007
+                - CX.UWC.BP.[i].CBSSN = Current value from field id 97
+                - CX.UWC.BP.[i].CBMARITAL = Current value from field id 84
+                - The code then updates the following custom fields
+                - CX.UWC.SPI.STREETADDRESS = Current value from field id URLA.X73
+                - CX.UWC.SPI.UNITTYPE = Current value from field id URLA.X74
+                - CX.UWC.SPI.UNITNUMBER = Current value from field id URLA.X75
+                - CX.UWC.SPI.CITY = Current value from field id 12
+                - CX.UWC.SPI.STATE = Current value from field id 14
+                - CX.UWC.SPI.ZIP = the current value of field id 15 once normalized by the code in this section -- ** NOTE The code completes a normalization of the current zip code to ensure that it is stored properly for comparison purposes, this is because there can be several different variations of the way the zip code is entered.
+                - CX.UWC.SPI.COUNTY = Current value from field id 13
+                - CX.UWC.SPI.UNITS = Current value from field id 16
+                - CX.UWC.SPI.ESTVALUE = Current value from field id 1821
+                - CX.UWC.SPI.ACTUALVALUE = Current value from field id 356
+                - CX.UWC.SPI.APPRAISALTYPE = Current value from field id CX.LOAN.APPRAISAL.TYPE
+                - CX.UWC.SPI.PT.CONDO = Current value from field id URLA.X205
+                - CX.UWC.SPI.PT.COOP= Current value from field id URLA.X206
+                - CX.UWC.SPI.PT.PUD = Current value from field id URLA.X207
+                - CX.UWC.SPI.PT.NOPROJECT = Current value from field id URLA.X208
+                - CX.UWC.SPI.PT.ATTACHTYPE = Current value from field id ULDD.X177
+                - CX.UWC.SPI.PT.PROPERTYTYPE = Current value from field id CX.PROPERTY.TYPE.GLOBAL
+                - CX.UWC.SPI.PT.PROJDESIGNTYPE = Current value from field id ULDD.X140
+                - CX.UWC.SPI.PT.CONSTTYPE = Current value from field id ULDD.X187
+                - CX.UWC.TD.LTV = Current value from field id 353
+                - CX.UWC.TD.CLTV = Current value from field id 976
+                - CX.UWC.TD.SUBFINANCING = Current value from field id 140
+                - CX.UWC.TD.AUSTYPE = Current value from field id 1543
+                - CX.UWC.TD.AUSRESPONSE = Current value from field id 1544
+                - CX.UWC.TD.AUSSUBNUM = Current value from field id CX.UWRA.SUBMISSION.NUM
+                - CX.UWC.TD.CASENUMBER = Current value from field id 1040
+                - CX.UWC.TD.VETERANTYPE = Current value from field id VAVOB.X72
+                - CX.UWC.TD.VETERANSTATUS = Current value from field id 955
+                - CX.UWC.TD.CASEDATE = Current value from field id 3042
+                - CX.UWC.TD.FFSTATUS = Current value from field id 990
+                - CX.UWC.TD.MIPFFGUARANTEE = Current value from field id 969
+                - CX.UWC.TD.MILOCK = Current value from field id 1765
+                - CX.UWC.TD.PMICASHPYMT = Current value from field id 3033
+                - CX.UWC.TD.LOANAMOUNT = Current value from field id 1109
+                - CX.UWC.TD.PMIMIPFINANCED = Current value from field id NEWHUD2.X2187
+                - CX.UWC.TD.TOTALLOANAMT = Current value from field id 2
+                - CX.UWC.TD.LOANPURPOSE = Current value from field id 19
+                - CX.UWC.TD.REFIPURPOSE = Current value from field id 299
+                - CX.UWC.TD.REFITYPE = Current value from field id URLA.X165
+                - CX.UWC.TD.REFIPROGRAM = Current value from field id URLA.X166
+                - CX.UWC.TD.OCCUPANCY = Current value from field id 1811
+                - CX.UWC.TD.LOANTYPE = Current value from field id 1172
+                - CX.UWC.TD.LIENPOS = Current value from field id 420
+                - CX.UWC.TD.AMORTIZATION = Current value from field id 608
+                - CX.UWC.TD.TERM = Current value from field id 1347
+                - CX.UWC.TD.INTERESTRATE = Current value from field id 3
+                - CX.UWC.TD.LOANPROGRAM = Current value from field id 1401
+                - CX.UWC.TD.HPELIGIBLE = Current value from field id CX.LOAN.HPELIGIBLE
+                - CX.UWC.TD.HRELIGIBLE = Current value from field id CX.LOAN.HRELIGIBLE
+                - CX.UWC.TD.CREDREFNUM = Current value from field id 300
+                - CX.UWC.TD.QUALFICO = Current value from field id VASUMM.X23
+                - CX.UWC.TD.TOTALINCOME = Current value from field id 736
+                - CX.UWC.TD.NETRENTALINCOME = Current value from field id 924
+                - CX.UWC.TD.PROPERTYCOUNT = Current value from field id CX.KM.VOM.COUNT
+                - CX.UWC.TD.FRONTEDNRATIO = Current value from field id 740
+                - CX.UWC.TD.BACKENDRATIO = Current value from field id 742
+                - CX.UWC.PMP.PANDI = Current value from field id 228
+                - CX.UWC.PMP.SUBOPANDI = Current value from field id 229
+                - CX.UWC.PMP.HOI = Current value from field id 230
+                - CX.UWC.PMP.SPI = Current value from field id URLA.X144
+                - CX.UWC.PMP.PROPTAXES = Current value from field id 1405
+                - CX.UWC.PMP.MI = Current value from field id 232
+                - CX.UWC.PMP.DUES = Current value from field id 233
+                - CX.UWC.PMP.OTHER = Current value from field id 234
+                - CX.UWC.PMP.TOTAL = Current value from field id 912
+                - CX.UWC.PMP.OTHERPYMTS = Current value from field id 350
+                - CX.UWC.PMP.TOTALPYMTS = Current value from field id 1187
+                - CX.UWC.PMP.CASHTOFROMBORR = Current value from field id 142
+                - CX.UWC.INC.BP1.BEMPLOYER = Current value from field id FE0102
+                - CX.UWC.INC.BP1.BPOSITION = Current value from field id FE0110
+                - CX.UWC.INC.BP1.BFAMILY = Current value from field id FE0154
+                - CX.UWC.INC.BP1.BSELFEMPL = Current value from field id FE0115
+                - CX.UWC.INC.BP1.BSEGTR25 = Current value from field id FE0155
+                - CX.UWC.INC.BP1.BSELTN25 = Current value from field id FE0155
+                - CX.UWC.INC.BP1.BESEINCOME = Current value from field id FE0156
+                - CX.UWC.INC.BP1.BDATE = Current value from field id FE0151
+                - CX.UWC.INC.BP1.CBEMPLOYER = Current value from field id FE0202
+                - CX.UWC.INC.BP1.CBPOSITION = Current value from field id FE0210
+                - CX.UWC.INC.BP1.CBFAMILY = Current value from field id FE0254
+                - CX.UWC.INC.BP1.CBSELFEMPL = Current value from field id FE0215
+                - CX.UWC.INC.BP1.CBSEGTR25 = Current value from field id FE0255
+                - CX.UWC.INC.BP1.CBSELTN25 = Current value from field id FE0255
+                - CX.UWC.INC.BP1.CBESEINCOME = Current value from field id FE0256
+                - CX.UWC.INC.BP1.CBDATE = Current value from field id FE0251
+                - CX.UWC.INC.BP1.BBASE = Current value from field id FE0119
+                - CX.UWC.INC.BP1.BOT = Current value from field id FE0120
+                - CX.UWC.INC.BP1.BBONUS = Current value from field id FE0121
+                - CX.UWC.INC.BP1.BCOMMISSION = Current value from field id FE0122
+                - CX.UWC.INC.BP1.BMILENT = Current value from field id FE0153
+                - CX.UWC.INC.BP1.BOTHER = Current value from field id FE0123
+                - CX.UWC.INC.BP1.BTOTAL = Current value from field id FE0112
+                - CX.UWC.INC.BP1.CBBASE = Current value from field id FE0219
+                - CX.UWC.INC.BP1.CBOT = Current value from field id FE0220
+                - CX.UWC.INC.BP1.CBBONUS = Current value from field id FE0221
+                - CX.UWC.INC.BP1.CBCOMMISSION = Current value from field id FE0222
+                - CX.UWC.INC.BP1.CBMILENT = Current value from field id FE0253
+                - CX.UWC.INC.BP1.CBOTHER = Current value from field id FE0223
+                - CX.UWC.INC.BP1.CBTOTAL = Current value from field id FE0212
+                - CX.UWC.INC.BP1.BAEMPLOYER = Current value from field id FE0302
+                - CX.UWC.INC.BP1.BAPOSITION = Current value from field id FE0310
+                - CX.UWC.INC.BP1.BAFAM = Current value from field id FE0354
+                - CX.UWC.INC.BP1.BASELFEMPL = Current value from field id FE0315
+                - CX.UWC.INC.BP1.BASEGTR25 = Current value from field id FE0355
+                - CX.UWC.INC.BP1.BASELTN25 = Current value from field id FE0355
+                - CX.UWC.INC.BP1.BADATE = Current value from field id FE0351
+                - CX.UWC.INC.BP1.CBAEMPLOYER = Current value from field id FE0402
+                - CX.UWC.INC.BP1.CBAPOSITION = Current value from field id FE0410
+                - CX.UWC.INC.BP1.CBAFAM = Current value from field id FE0454
+                - CX.UWC.INC.BP1.CBASELFEMPL = Current value from field id FE0415
+                - CX.UWC.INC.BP1.CBASEGTR25 = Current value from field id FE0455
+                - CX.UWC.INC.BP1.CBASELTN25 = Current value from field id FE0455
+                - CX.UWC.INC.BP1.CBADATE = Current value from field id FE0451
+                - CX.UWC.INC.BP1.BABASE = Current value from field id FE0319
+                - CX.UWC.INC.BP1.BAOT = Current value from field id FE0320
+                - CX.UWC.INC.BP1.BABONUS = Current value from field id FE0321
+                - CX.UWC.INC.BP1.BACOMMISSION = Current value from field id FE0322
+                - CX.UWC.INC.BP1.BAMILENT = Current value from field id FE0353
+                - CX.UWC.INC.BP1.BAOTHER = Current value from field id FE0323
+                - CX.UWC.INC.BP1.BATOTAL = Current value from field id FE0312
+                - CX.UWC.INC.BP1.CBABASE = Current value from field id FE0419
+                - CX.UWC.INC.BP1.CBAOT = Current value from field id FE0420
+                - CX.UWC.INC.BP1.CBABONUS = Current value from field id FE0421
+                - CX.UWC.INC.BP1.CBACOMMISSION = Current value from field id FE0422
+                - CX.UWC.INC.BP1.CBAMILENT = Current value from field id FE0453
+                - CX.UWC.INC.BP1.CBAOTHER = Current value from field id FE0423
+                - CX.UWC.INC.BP1.CBATOTAL = Current value from field id FE0412
+                - CX.UWC.INC.BP1.BORRCB1 = Current value from field id URLAROIS0102
+                - CX.UWC.INC.BP1.SOURCE1 = Current value from field id URLAROIS0118
+                - CX.UWC.INC.BP1.INCOME1 = Current value from field id URLAROIS0122
+                - CX.UWC.INC.BP1.BORRCB2 = Current value from field id URLAROIS0202
+                - CX.UWC.INC.BP1.SOURCE2 = Current value from field id URLAROIS0218
+                - CX.UWC.INC.BP1.INCOME2 = Current value from field id URLAROIS0222
+                - CX.UWC.INC.BP1.BORRCB3 = Current value from field id URLAROIS0302
+                - CX.UWC.INC.BP1.SOURCE3 = Current value from field id URLAROIS0318
+                - CX.UWC.INC.BP1.INCOME3 = Current value from field id URLAROIS0322
+                - CX.UWC.INC.BP1.BOTHERTOTAL = Current value from field id URLA.X42
+                - CX.UWC.INC.BP1.CBOTHERTOTAL = Current value from field id URLA.X43
+                - CX.UWC.INC.BP1.BPTOTINCOME = Current value from field id URLA.X44
+            </div><br>
+
+
+</body>
+
+</html>
